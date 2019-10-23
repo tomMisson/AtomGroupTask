@@ -39,7 +39,6 @@ app.get('/', function (req, res) {
               .background(parseInt(bgcol,16))//Only works on JPG as transparency is replaced 
               .write('test.'+ext); // save
           });
-          res.download("./test."+ext);
           res.status(200).send();
 
     }
