@@ -2,15 +2,16 @@
 
 let express = require('express')
 let app = express()
-let Jimp = require('jimp');
-let marker = require('image-watermark');
+let jimp = require('jimp');
+let NodeCache = require( "node-cache" );
+let myCache = new NodeCache( { stdTTL: 7200, checkperiod: 600 } );
 
-app.get('/', function (request, resonse) {
+app.get('/', cache(10), function (request, resonse) {
     //Collects the paramter values from the request
-    let res = req.query.res; 
-    let bgcol = req.query.bgcol; 
-    let watermark = req.query.watermark; 
-    let ext = req.query.ext;
+    let res = request.query.res; 
+    let bgcol = request.query.bgcol; 
+    let watermark = request.query.watermark; 
+    let ext = request.query.ext;
 
     let img = "01_04_2019_001103.png";
 
@@ -20,7 +21,7 @@ app.get('/', function (request, resonse) {
         res = Number(res);
 
         //If it can't value will be NaN
-        if((!isNaN(res))||watermark.length <=20||/^[0-9A-F]{6}$/i.test(bgcol)||(ext==="jpg"||ext==="png"))
+        if((!isNaN(res))||watermark.length <=20||/^[0-9A-F]{6}$/i.test(bgcol)||(ext==="jpg"||ext==="png"||ext==="gif"||ext==="tiff"))
         {
             console.log("Load: "+ img+ "   " + res + " " + watermark+ " "+ bgcol + " " + ext)
 
@@ -31,15 +32,51 @@ app.get('/', function (request, resonse) {
         }
         else
         {
-            res.status(400).send();
+            resonse.status(204).send();//No content if validation of data fails
         }
     }
     catch(error){
-        res.status(400).send();//Any issues parsing data then 400
+        resonse.status(400).send();//Any issues parsing data then 400
     }
     finally{
-        //Test if the values aren't null and process the image
-        //Cache last 10 results 
+        key=img+ext+res+watermark+bgcol;
+
+        //if key doesn't exist in the cache, create the image again 
+        if(myCache.get( key ) == undefined)
+        {
+            if(res!=undefined)
+            {
+
+            }
+            else if(watermark!=undefined)
+            {
+                
+            }
+            else if(ext!=undefined)
+            {
+
+            }
+            else if(bgcol!=undefined)
+            {
+
+            }
+
+            //Tries to cache 
+            if(myCache.set( key, img, 7200  ))
+            {
+                resonse.status(201).send();
+            }
+            else
+            {
+                resonse.status(500).send();//If unable to cache result  
+            }
+        }
+        else
+        {
+            imageFromCache = myCache.get(key);
+            response.pipe();
+            resonse.status(200).send();
+        }
     }
 })
 
