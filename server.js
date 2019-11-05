@@ -3,8 +3,6 @@ let app = express()
 let jimp = require('jimp');
 let fs = require('fs');
 
-
-
 app.get('/', function(request, response) {
     //Collects the paramter values from the request
     //params for url - resX - x resolution of new image,resY - y resolution of new image,bgcol,watermark - watermar for accross the image,ext - extension,img - image to use
@@ -30,12 +28,11 @@ app.get('/', function(request, response) {
 
             console.log("Load: " + img + " " + resX + " " + resY + " " + watermark + " " + bgcol + " " + ext)
 
-            img = img.replace('.', '');
+            imgWOdot = img.replace('.', '');
 
-            key = img.concat(" " + resX + " " + resY + " " + watermark + " " + bgcol);
+            key = imgWOdot.concat(" " + resX + " " + resY + " " + watermark + " " + bgcol);
 
             let cacheFileName = "outputfiles/" + key + "." + ext;
-
 
             //if key doesn't exist in the cache, create the image again 
             if (!fs.existsSync(cacheFileName)) {
