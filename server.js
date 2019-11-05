@@ -24,7 +24,11 @@ app.get('/', function(request, response) {
         resY = Number(resY);
 
         //If it can't value will be NaN
-        if ((img != undefined && ext != undefined && resX != undefined && resY != undefined) && (!isNaN(resX) && !isNaN(resY)) || watermark.length <= 20 || /^[0-9A-F]{6}$/i.test(bgcol) || (ext === "jpeg" || ext === "png" || ext === "bmp")) {
+        if ((img != undefined && ext != undefined && resX != undefined && resY != undefined) 
+        && (!isNaN(resX) && !isNaN(resY)) /*|| watermark.length <= 20 || /^[0-9A-F]{6}$/i.test(bgcol)*/ 
+        || (ext === "jpeg" || ext === "png" || ext === "bmp")) {
+
+            
             console.log("Load: " + img + "   " + resX + " " + resY + " " + watermark + " " + bgcol + " " + ext)
 
             key = ext.concat(+img + resX + resY + watermark + bgcol);
@@ -42,11 +46,12 @@ app.get('/', function(request, response) {
                     };
 
                     image.resize(resX, resY) // resize
+                        .writeAsync('output.'+ext)
                         .getBufferAsync('image/' + ext)
                         .then(buff => stream.pipe(buff))
                         .then(buff => myCache.set(key, buff, 7200))
                         .then(response.status(201))
-                        .catch(err => res.status(500).send(err));
+                        .catch(err => response.status(500));
 
                 });
             } else {

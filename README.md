@@ -20,7 +20,7 @@ node server
 Then to test it is running enter the following in to a browser:
 
 ```
-http://localhost:3000/?img=01_04_2019_001103.png&resX=400&resY=400&ext=jpg
+http://localhost:3000/?img=01_04_2019_001103.png&resX=400&resY=400&ext=jpeg
 ```
 ___
 
