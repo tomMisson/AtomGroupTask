@@ -1,9 +1,8 @@
 let express = require('express')
 let app = express()
 let jimp = require('jimp');
-let NodeCache = require("node-cache");
-let myCache = new NodeCache({ stdTTL: 7200, checkperiod: 600 });
-let data;
+let fs = require('fs');
+
 
 
 app.get('/', function(request, response) {
@@ -24,39 +23,40 @@ app.get('/', function(request, response) {
         resY = Number(resY);
 
         //If it can't value will be NaN
-        if ((img != undefined && ext != undefined && resX != undefined && resY != undefined) 
-        && (!isNaN(resX) && !isNaN(resY)) /*|| watermark.length <= 20 || /^[0-9A-F]{6}$/i.test(bgcol)*/ 
-        || (ext === "jpeg" || ext === "png" || ext === "bmp")) {
+        if ((img != undefined && ext != undefined && resX != undefined && resY != undefined) &&
+            (!isNaN(resX) && !isNaN(resY)) /*|| watermark.length <= 20 || /^[0-9A-F]{6}$/i.test(bgcol)*/ ||
+            (ext === "jpeg" || ext === "png" || ext === "bmp")) {
 
-            
-            console.log("Load: " + img + "   " + resX + " " + resY + " " + watermark + " " + bgcol + " " + ext)
 
-            key = ext.concat(+img + resX + resY + watermark + bgcol);
+            console.log("Load: " + img + " " + resX + " " + resY + " " + watermark + " " + bgcol + " " + ext)
 
-            //Try to retrive from cache
-            cacheBuffer = myCache.get(key);
+            img = img.replace('.', '');
+
+            key = img.concat(" " + resX + " " + resY + " " + watermark + " " + bgcol);
+
+            let cacheFileName = "outputfiles/" + key + "." + ext;
+
 
             //if key doesn't exist in the cache, create the image again 
-            if (cacheBuffer == undefined) {
+            if (!fs.existsSync(cacheFileName)) {
                 //If it can't create an instance of the 
-                imageObj = jimp.read("product_images/" + img, (err, image) => {
+                imageObj = jimp.read("product_images/" + img + "." + ext, (err, image) => {
+
                     if (err) {
                         response.status(404).send({ 'error': "File not found" });
                         throw err;
                     };
 
                     image.resize(resX, resY) // resize
-                        .writeAsync('output.'+ext)
-                        .getBufferAsync('image/' + ext)
-                        .then(buff => stream.pipe(buff))
-                        .then(buff => myCache.set(key, buff, 7200))
-                        .then(response.status(201))
-                        .catch(err => response.status(500));
+                    image.write(cacheFileName) //write to cache
+                    console.log("File made")
 
                 });
+                response.sendfile(cacheFileName)
+                response.status(201)
             } else {
-                //Pull from cache
-                stream.pipe(cacheBuffer);
+                response.sendfile(cacheFileName)
+                response.status(200)
             }
         } else {
             response.status(204).send({ 'error': "Missing or invalid data" }); //No content if validation of data fails
