@@ -28,7 +28,7 @@ app.get('/', function(request, response) {
 
             console.log("Load: " + img + " " + resX + " " + resY + " " + watermark + " " + bgcol + " " + ext)
 
-            imgWOdot = img.replace('.', '');
+            imgWOdot = img.replace('.', '');//removes . from extension to avoid confusing the filesystem when saved locally
 
             key = imgWOdot.concat(" " + resX + " " + resY + " " + watermark + " " + bgcol);
 
@@ -37,7 +37,8 @@ app.get('/', function(request, response) {
             //if key doesn't exist in the cache, create the image again 
             if (!fs.existsSync(cacheFileName)) {
                 //If it can't create an instance of the 
-                imageObj = jimp.read("product_images/" + img + "." + ext, (err, image) => {
+                console.log(cacheFileName);
+                imageObj = jimp.read("product_images/" + img, (err, image) => {
 
                     if (err) {
                         response.status(404).send({ 'error': "File not found" });
@@ -45,22 +46,22 @@ app.get('/', function(request, response) {
                     };
 
                     image.resize(resX, resY) // resize
-                    image.write(cacheFileName) //write to cache
-                    console.log("File made")
+                    image.writeAsync(cacheFileName) //write to cache
+                    .then(console.log("File made"))//Waits till file is saved to return message 
+                    .then(response.sendfile(cacheFileName))
 
-                });
-                response.sendfile(cacheFileName)
-                response.status(201)
+                })
+                response.status(201)//created new content
             } else {
                 response.sendfile(cacheFileName)
-                response.status(200)
+                response.status(200)//Send from cache
             }
         } else {
             response.status(204).send({ 'error': "Missing or invalid data" }); //No content if validation of data fails
         }
     } catch (error) {
         console.log(error)
-        response.status(500).send({ 'error': "Error server side" }); //Any issues parsing data then 400
+        response.status(500).send({ 'error': "Error server side" }); //Any issues parsing data/handling image then 500
     }
 })
 
